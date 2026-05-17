@@ -33,3 +33,30 @@ export function statusLabel(status: Status): string {
   if (status === 'done') return 'Done'
   return 'To Do'
 }
+
+export const STATUS_COLORS: Record<
+  Status,
+  { border: string; text: string; bg: string }
+> = {
+  todo: {
+    border: 'border-l-slate-300',
+    text: 'text-slate-700',
+    bg: 'bg-slate-100',
+  },
+  'in-progress': {
+    border: 'border-l-amber-500',
+    text: 'text-amber-700',
+    bg: 'bg-amber-50',
+  },
+  done: {
+    border: 'border-l-emerald-500',
+    text: 'text-emerald-700',
+    bg: 'bg-emerald-50',
+  },
+}
+
+export const PRIORITY_COLORS: Record<Priority, string> = {
+  high: 'bg-red-500',
+  medium: 'bg-amber-500',
+  low: 'bg-slate-300',
+}

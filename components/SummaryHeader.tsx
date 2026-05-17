@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { Card, CardContent } from '@/components/ui/card'
 import type { Status, Task } from '@/lib/types'
 import { ALL_STATUSES } from '@/lib/types'
-import { statusLabel } from '@/lib/utils'
+import { STATUS_COLORS, cn, statusLabel } from '@/lib/utils'
 
 interface SummaryHeaderProps {
   tasks: Task[]
@@ -25,14 +25,17 @@ export function SummaryHeader({ tasks }: SummaryHeaderProps) {
 
   return (
     <Card>
-      <CardContent className="flex gap-8 py-5">
+      <CardContent className="grid grid-cols-3 gap-6 py-5">
         {ALL_STATUSES.map((status) => (
           <div key={status} className="flex flex-col">
-            <span className="text-xs uppercase tracking-wide text-muted-foreground">
+            <span className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
               {statusLabel(status)}
             </span>
             <span
-              className="text-2xl font-semibold tabular-nums"
+              className={cn(
+                'mt-1 text-3xl font-semibold tabular-nums',
+                STATUS_COLORS[status].text,
+              )}
               data-testid={`count-${status}`}
             >
               {counts[status]}

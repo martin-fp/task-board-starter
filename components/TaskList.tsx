@@ -1,5 +1,6 @@
 'use client'
 
+import { Inbox } from 'lucide-react'
 import type { Status, Task } from '@/lib/types'
 import { TaskItem } from './TaskItem'
 
@@ -11,8 +12,11 @@ interface TaskListProps {
 export function TaskList({ tasks, onStatusChange }: TaskListProps) {
   if (tasks.length === 0) {
     return (
-      <div className="rounded-md border border-dashed py-12 text-center text-sm text-muted-foreground">
-        No tasks match the current filter.
+      <div className="rounded-md border border-dashed bg-muted/30 py-16 text-center">
+        <Inbox className="mx-auto mb-3 h-8 w-8 text-muted-foreground/60" />
+        <p className="text-sm text-muted-foreground">
+          No tasks match the current filter.
+        </p>
       </div>
     )
   }

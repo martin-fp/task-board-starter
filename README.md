@@ -32,6 +32,7 @@ lib/
   types.ts        Task / Status / Priority types
   seed.ts         initial tasks
   utils.ts        cn() + small task helpers
+  ai.ts           local stub "AI" provider (streaming, no keys)
 __tests__/
   TaskBoard.test.tsx
 ```
@@ -68,8 +69,9 @@ Please complete all of the following and open a single pull request against `mai
 1. **Understand the codebase first.** Before changing anything, give a short verbal walkthrough of how the app is structured and where the main logic lives.
 2. **Fix the bugs.** There are at least two known defects in the current behavior. Find them, explain what's wrong and why, fix them, and prove the fixes with tests.
 3. **Ship an enhancement:** add the ability to edit an existing task (title, priority, assignee, status) through the existing UI patterns and design library already in the repo. Match the existing component and styling conventions rather than introducing new ones.
-4. **Tests and success criteria.** Before or while implementing, state explicit success criteria for your work, then extend the automated test suite so those criteria are verified. The suite must be green.
-5. **Open a PR** with a clear description: what you changed, how you verified it, and any tradeoffs or things you'd do with more time.
-6. **Deploy** the final state to Vercel and share the live URL.
+4. **Polish the AI Suggest feature.** The Create Task form already includes a "✨ Suggest" button that asks the local stub provider in `lib/ai.ts` to recommend a priority from the title. Treat the current implementation as MVP scope and make it production-ready: surface the streaming response to the user, handle loading and error states, cancel any in-flight request when the user retries, and disable the action when there is nothing to suggest from. You may keep the stub provider as-is — the goal is the integration quality, not the model. Cover the new behavior with tests.
+5. **Tests and success criteria.** Before or while implementing, state explicit success criteria for your work, then extend the automated test suite so those criteria are verified. The suite must be green.
+6. **Open a PR** with a clear description: what you changed, how you verified it, and any tradeoffs or things you'd do with more time.
+7. **Deploy** the final state to Vercel and share the live URL.
 
 You will not be penalized for asking clarifying questions. A smaller, correct, well-tested result beats a larger, shaky one.

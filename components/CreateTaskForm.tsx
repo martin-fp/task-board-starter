@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { Sparkles } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -13,6 +14,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { ALL_PRIORITIES, type Priority, type Task } from '@/lib/types'
+import { streamCompletion } from '@/lib/ai'
 
 interface CreateTaskFormProps {
   onAdd: (task: Omit<Task, 'id'>) => void
@@ -37,12 +39,21 @@ export function CreateTaskForm({ onAdd }: CreateTaskFormProps) {
     setPriority('medium')
   }
 
+  async function handleSuggest() {
+    let response = ''
+    for await (const token of streamCompletion({ prompt: title })) {
+      response += token
+    }
+    const match = response.toLowerCase().match(/^(high|medium|low)/)
+    if (match) setPriority(match[1] as Priority)
+  }
+
   return (
     <Card>
       <CardContent className="pt-6">
         <form
           onSubmit={handleSubmit}
-          className="grid gap-3 md:grid-cols-[1fr_140px_160px_auto]"
+          className="grid gap-3 md:grid-cols-[1fr_160px_160px_auto]"
         >
           <div className="grid gap-1.5">
             <Label htmlFor="title">Title</Label>
@@ -54,7 +65,19 @@ export function CreateTaskForm({ onAdd }: CreateTaskFormProps) {
             />
           </div>
           <div className="grid gap-1.5">
-            <Label htmlFor="priority">Priority</Label>
+            <div className="flex items-center justify-between">
+              <Label htmlFor="priority">Priority</Label>
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={handleSuggest}
+                className="h-auto p-1 text-xs font-normal text-muted-foreground hover:text-foreground"
+              >
+                <Sparkles className="mr-1 h-3 w-3" />
+                Suggest
+              </Button>
+            </div>
             <Select
               value={priority}
               onValueChange={(v) => setPriority(v as Priority)}
