@@ -4,9 +4,17 @@
 // expose so the implementation can be swapped (OpenAI, Anthropic, local
 // Ollama, etc.) without touching the call sites.
 
+import type { Priority } from './types'
+
 export interface CompletionRequest {
   prompt: string
   signal?: AbortSignal
+}
+
+export interface TaskSuggestion {
+  title: string
+  priority: Priority
+  assignee: string
 }
 
 export class AIError extends Error {
@@ -55,19 +63,62 @@ function abortError(): DOMException {
   return new DOMException('Aborted by caller', 'AbortError')
 }
 
+const ASSIGNEES = ['Alex', 'Priya', 'Sam', 'Jordan'] as const
+
+const PRIORITY_PATTERNS: Array<[RegExp, Priority]> = [
+  [
+    /security|hotfix|outage|incident|broken|fix|bug|p0|p1|critical|urgent|asap|blocker/,
+    'high',
+  ],
+  [/refactor|cleanup|docs|polish|cosmetic|maintenance|nit|chore/, 'low'],
+]
+
+const ASSIGNEE_PATTERNS: Array<[RegExp, string]> = [
+  [/security|auth|login|jwt|crypto|password|session/, 'Jordan'],
+  [/billing|payment|invoice|stripe|charge|subscription|pricing/, 'Alex'],
+  [/docs|onboard|copy|content|guide|tutorial|readme/, 'Priya'],
+  [/analytic|metric|tracking|telemetry|event|dashboard|kpi/, 'Sam'],
+]
+
+const FRESH_TITLES = [
+  'Set up incident response runbook',
+  'Draft team OKRs for next quarter',
+  'Audit third-party dependency vulnerabilities',
+  'Improve onboarding checklist for new hires',
+  'Migrate legacy logging to structured format',
+]
+
+const ABBREVIATIONS: Array<[RegExp, string]> = [
+  [/\bauth\b/gi, 'authentication'],
+  [/\bdb\b/gi, 'database'],
+  [/\bci\b/gi, 'CI pipeline'],
+  [/\bdocs\b/gi, 'documentation'],
+  [/\bapi\b/gi, 'API'],
+  [/\bui\b/gi, 'UI'],
+  [/\bperf\b/gi, 'performance'],
+]
+
 function mockResponseFor(prompt: string): string {
   const lower = prompt.toLowerCase()
-  if (
-    /security|hotfix|outage|incident|broken|fix|bug|p0|p1|critical|urgent|asap|blocker/.test(
-      lower,
-    )
-  ) {
-    return 'high — this looks time-sensitive or user-impacting and should be handled before standard work.'
+  const priority =
+    PRIORITY_PATTERNS.find(([p]) => p.test(lower))?.[1] ?? 'medium'
+  const assignee =
+    ASSIGNEE_PATTERNS.find(([p]) => p.test(lower))?.[1] ??
+    ASSIGNEES[Math.floor(Math.random() * ASSIGNEES.length)]
+  const title = polishTitle(prompt)
+  const suggestion: TaskSuggestion = { title, priority, assignee }
+  return JSON.stringify(suggestion, null, 2)
+}
+
+function polishTitle(input: string): string {
+  const trimmed = input.trim()
+  if (!trimmed) {
+    return FRESH_TITLES[Math.floor(Math.random() * FRESH_TITLES.length)]
   }
-  if (
-    /refactor|cleanup|docs|polish|cosmetic|maintenance|nit|chore/.test(lower)
-  ) {
-    return 'low — internal quality work with no immediate user impact.'
+  let result = trimmed
+  for (const [pattern, replacement] of ABBREVIATIONS) {
+    result = result.replace(pattern, replacement)
   }
-  return 'medium — standard scope, can be slotted into the regular queue.'
+  result = result.replace(/[.!?]+$/, '')
+  return result[0].toUpperCase() + result.slice(1)
 }

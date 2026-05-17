@@ -14,7 +14,8 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { ALL_PRIORITIES, type Priority, type Task } from '@/lib/types'
-import { streamCompletion } from '@/lib/ai'
+import { type TaskSuggestion, streamCompletion } from '@/lib/ai'
+import { cn } from '@/lib/utils'
 
 interface CreateTaskFormProps {
   onAdd: (task: Omit<Task, 'id'>) => void
@@ -24,6 +25,7 @@ export function CreateTaskForm({ onAdd }: CreateTaskFormProps) {
   const [title, setTitle] = useState('')
   const [priority, setPriority] = useState<Priority>('medium')
   const [assignee, setAssignee] = useState('')
+  const [suggesting, setSuggesting] = useState(false)
 
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
@@ -40,17 +42,36 @@ export function CreateTaskForm({ onAdd }: CreateTaskFormProps) {
   }
 
   async function handleSuggest() {
+    setSuggesting(true)
     let response = ''
     for await (const token of streamCompletion({ prompt: title })) {
       response += token
     }
-    const match = response.toLowerCase().match(/^(high|medium|low)/)
-    if (match) setPriority(match[1] as Priority)
+    const parsed = JSON.parse(response) as TaskSuggestion
+    setTitle(parsed.title)
+    setPriority(parsed.priority)
+    setAssignee(parsed.assignee)
+    setSuggesting(false)
   }
 
   return (
     <Card>
       <CardContent className="pt-6">
+        <div className="mb-3 flex items-center justify-between">
+          <h2 className="text-sm font-medium">New task</h2>
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={handleSuggest}
+            className="h-auto p-1 text-xs font-normal text-muted-foreground hover:text-foreground"
+          >
+            <Sparkles
+              className={cn('mr-1 h-3 w-3', suggesting && 'animate-pulse')}
+            />
+            {suggesting ? 'Thinking…' : 'Suggest with AI'}
+          </Button>
+        </div>
         <form
           onSubmit={handleSubmit}
           className="grid gap-3 md:grid-cols-[1fr_160px_160px_auto]"
@@ -65,19 +86,7 @@ export function CreateTaskForm({ onAdd }: CreateTaskFormProps) {
             />
           </div>
           <div className="grid gap-1.5">
-            <div className="flex items-center justify-between">
-              <Label htmlFor="priority">Priority</Label>
-              <Button
-                type="button"
-                variant="ghost"
-                size="sm"
-                onClick={handleSuggest}
-                className="h-auto p-1 text-xs font-normal text-muted-foreground hover:text-foreground"
-              >
-                <Sparkles className="mr-1 h-3 w-3" />
-                Suggest
-              </Button>
-            </div>
+            <Label htmlFor="priority">Priority</Label>
             <Select
               value={priority}
               onValueChange={(v) => setPriority(v as Priority)}
