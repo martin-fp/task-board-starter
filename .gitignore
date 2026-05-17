@@ -38,6 +38,7 @@ yarn-error.log*
 
 # assessor-only — keep out of candidate's clone
 ASSESSOR_NOTES.md
+CANDIDATE_EMAIL.md
 
 # local agent / cache scratch
 .claude/
